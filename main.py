@@ -2,20 +2,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from tabulate import tabulate
-
-
-def take_input(data_name, sign="", hint=""):
-    value = 0
-    hint_text = "({})".format(hint) if hint != "" else hint
-    prompt = "* Type {name}{hint}: {sign}".format(
-        name=data_name, hint=hint_text, sign=sign
-    )
-    while value == 0:
-        try:
-            value = int(input(prompt))
-        except ValueError:
-            print("{} should be a number".format(data_name.title()))
-    return value
+from utils.take_input import take_input
 
 
 def get_coefficient(issue_rate):
@@ -23,58 +10,63 @@ def get_coefficient(issue_rate):
     return result
 
 
-def get_month_amount(amount, issue_rate, loan_term):
-    coefficient = get_coefficient(issue_rate)
-    month_issue_rate = coefficient - 1
-    result = (
-        amount
-        * pow(coefficient, loan_term)
-        * month_issue_rate
-        / (pow(coefficient, loan_term) - 1)
-    )
+class MortgageTable:
+    def __init__(self, amount, issue_rate, loan_term, issue_date):
+        self.table = []
+        self.amount = amount
+        self.issue_rate = issue_rate
+        self.loan_term = loan_term
+        self.issue_date = issue_date
+        self.coefficient = get_coefficient(issue_rate)
+        self.month_amount = self.get_month_amount()
+        self.calc()
 
-    return result
+    def __repr__(self) -> str:
+        headers = ["date", "payment", "month %", "main", "rest"]
+        return tabulate(self.table, headers, tablefmt="presto")
 
+    def calc(self):
+        rest_amount = self.amount
+        for m in range(self.loan_term):
+            date = self.issue_date + relativedelta(months=+m)
+            month_percent_amount = self.get_month_percent_by_amount(rest_amount)
+            month_main_amount = self.month_amount - month_percent_amount
+            rest_amount -= month_main_amount
+            self.table.append(
+                [
+                    date.strftime("%b %d %Y"),
+                    round(self.month_amount, 2),
+                    round(month_percent_amount, 2),
+                    round(month_main_amount, 2),
+                    round(rest_amount, 2),
+                ]
+            )
 
-def get_month_percent_amount(rest_amount, issue_rate):
-    coefficient = get_coefficient(issue_rate)
-    month_issue_rate = coefficient - 1
-    result = month_issue_rate * rest_amount
-    return result
+    def get_month_amount(self):
+        month_issue_rate = self.coefficient - 1
+        result = (
+            self.amount
+            * pow(self.coefficient, self.loan_term)
+            * month_issue_rate
+            / (pow(self.coefficient, self.loan_term) - 1)
+        )
+        return result
+
+    def get_month_percent_by_amount(self, amount):
+        month_issue_rate = self.coefficient - 1
+        result = month_issue_rate * amount
+        return result
 
 
 def main():
     print("Wellcome to Mortgage Calculator!")
     mortgage_amount = take_input("mortgage amount", "$")
     issue_rate = take_input("interest rate", "%")
-
     # loan_term = years * 12 months
     loan_term = take_input(data_name="loan term", sign="", hint="years") * 12
-
     issue_date = datetime.today()
-    print(issue_date)
-    month_amount = get_month_amount(mortgage_amount, issue_rate, loan_term)
-    rest_amount = mortgage_amount
-
-    table = []
-
-    for m in range(loan_term):
-        issue_date += relativedelta(months=+1)
-        month_percent_amount = get_month_percent_amount(rest_amount, issue_rate)
-        month_main_amount = month_amount - month_percent_amount
-        rest_amount = rest_amount - month_main_amount
-
-        table.append(
-            [
-                issue_date.strftime("%b %d %Y"),
-                round(month_amount, 2),
-                round(month_percent_amount, 2),
-                round(month_main_amount, 2),
-                round(rest_amount, 2),
-            ]
-        )
-    headers = ["date", "payment", "month %", "main", "rest"]
-    print(tabulate(table, headers, tablefmt="presto"))
+    mortgage = MortgageTable(mortgage_amount, issue_rate, loan_term, issue_date)
+    print(mortgage)
 
 
 main()
