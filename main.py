@@ -4,13 +4,13 @@ from utils.take_input import take_input
 from mortgage import MortgageTable
 
 
-def main():
+def main() -> None:
     print("Wellcome to Mortgage Calculator!")
     mortgage_amount = take_input("mortgage amount", "$")
     issue_rate = take_input("interest rate", "%")
     # loan_term = years * 12 months
     loan_term = take_input(data_name="loan term", sign="", hint="years") * 12
-    issue_date = datetime.today()
+    issue_date = datetime.now()
     mortgage = MortgageTable(mortgage_amount, issue_rate, loan_term, issue_date)
     print(mortgage)
 

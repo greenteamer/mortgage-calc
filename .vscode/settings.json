@@ -1,0 +1,8 @@
+{
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
+  "mypy.configFile": "mypy.ini",
+  "mypy.dmypyExecutable": "~/.local/share/virtualenvs/project1-D4H2flP0/bin/dmypy",
+  "mypy.targets": ["."]
+}

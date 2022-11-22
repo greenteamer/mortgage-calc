@@ -1,4 +1,4 @@
-def take_input(data_name, sign="", hint=""):
+def take_input(data_name: str, sign: str = "", hint: str = "") -> int:
     value = 0
     hint_text = "({})".format(hint) if hint != "" else hint
     prompt = "* Type {name}{hint}: {sign}".format(
@@ -9,4 +9,5 @@ def take_input(data_name, sign="", hint=""):
             value = int(input(prompt))
         except ValueError:
             print("{} should be a number".format(data_name.title()))
+
     return value
